@@ -9,19 +9,26 @@
 #install_github("WSpiller/MVMR", build_opts = c("--no-resave-data", "--no-manual"), build_vignettes = TRUE)
 #install_github("WSpiller/RadialMR", build_opts = c("--no-resave-data", "--no-manual"), build_vignettes = TRUE)
 
-#args <- as.numeric(commandArgs(T))
-#set.seed((args[1]*100000))
-#job_id <- ((args[1]))
-#message("job number ", job_id)
+args <- as.numeric(commandArgs(T))
+set.seed((args[1]*100000))
+job_id <- ((args[1]))
+message("job number ", job_id)
 
 #Set random gen.seed
 set.seed(12345)
 
 #Load libraries into R
-library(RMVMR)
-library(RadialMR)
-library(MVMR)
-library(ggplot2)
+#library(RMVMR)
+#library(RadialMR)
+#library(MVMR)
+#library(ggplot2)
+
+source("format_rmvmr.R")
+source("strength_mvmr.R")
+source("pleiotropy_rmvmr.R")
+source("format_radial.R")
+source("ivw_rmvmr.R")
+source("ivw_radial.R")
 
 source("datagen_function.R")
 
@@ -58,7 +65,7 @@ k = 0
 
 
 for(type in c('balanced', 'unbalanced')){
-  for(pct_pleio in c(0.5)){
+  for(pct_pleio in c(0, 0.1, 0.25, 0.5, 0.75)){
 
 for(it in 1:iterations){
   
@@ -241,6 +248,16 @@ for(it in 1:iterations){
   #Estimate pleiotropic effects and detect outliers
   pleioX1X2X3<-pleiotropy_rmvmr(X1X2X3f.data,X1X2X3res)
   
+  #report Q statistics
+  output[k,'Qx1'] <- pleioX1X2X3$gq['Exposure_1','q_statistic']
+  output[k,'Qx1_pvalue'] <- pleioX1X2X3$gq['Exposure_1','p_value']
+  
+  output[k,'Qx2'] <- pleioX1X2X3$gq['Exposure_2','q_statistic']
+  output[k,'Qx2_pvalue'] <- pleioX1X2X3$gq['Exposure_2','p_value']
+  
+  output[k,'Qx3'] <- pleioX1X2X3$gq['Exposure_3','q_statistic']
+  output[k,'Qx3_pvalue'] <- pleioX1X2X3$gq['Exposure_3','p_value']
+  
   #############################################################
   ###   Radial MVMR Analyses: X1, X2, and X3 with pruning   ###
   #############################################################
@@ -269,6 +286,15 @@ for(it in 1:iterations){
     
   }
   output[k,'noutliers'] <- length(X1X2X3f.data$SNP) - length(X1X2X3fp.data$SNP)
+  
+  output[k,'Qx1p'] <- pleioX1X2X3p$gq['Exposure_1','q_statistic']
+  output[k,'Qx1p_pvalue'] <- pleioX1X2X3p$gq['Exposure_1','p_value']
+  
+  output[k,'Qx2p'] <- pleioX1X2X3p$gq['Exposure_2','q_statistic']
+  output[k,'Qx2p_pvalue'] <- pleioX1X2X3p$gq['Exposure_2','p_value']
+  
+  output[k,'Qx3p'] <- pleioX1X2X3p$gq['Exposure_3','q_statistic']
+  output[k,'Qx3p_pvalue'] <- pleioX1X2X3p$gq['Exposure_3','p_value']
   
   strength_X1X2X3p<- suppressWarnings(strength_mvmr(X1X2X3fp.data))
   
